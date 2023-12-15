@@ -21,6 +21,10 @@ class QuizAPI {
         }
     }
     suspend fun getAllQuestions(): Quiz {
-        return httpClient.get("https://awl.li/devoxxkmm2023").body()
+        try {
+            return httpClient.get("https://awl.li/devoxxkmm2023").body()
+        } catch (err:Exception) {
+            throw err;
+        }
     }
 }
