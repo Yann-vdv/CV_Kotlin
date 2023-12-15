@@ -1,4 +1,3 @@
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -22,6 +20,7 @@ import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,38 +28,56 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import data.CvData
+import data.ParData
+import data.Question
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
+import moe.tlaster.precompose.PreComposeApp
+import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.Navigator
+import moe.tlaster.precompose.navigation.path
+import moe.tlaster.precompose.navigation.rememberNavigator
 
+private val repository = QuizRepository()
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    MaterialTheme {
-//        WelcomeScreen();
-//        ScoreScreen("10/20")
-        val quizzData = Quizz(
-            listOf(
-                Question(id = 0, correctId = 0, label = "Android is a great platform ?", answers = listOf(Answer(id = 0, label = "Yes"),Answer(id = 1, label = "No"))),
-                Question(id = 1, correctId = 1, label = "Android = IOS ?", answers = listOf(Answer(id = 0, label = "Yes"),Answer(id = 1, label = "No"))),
-                Question(id = 2, correctId = 0, label = "Quel est ce cours ?", answers = listOf(Answer(id = 0, label = "Mobile"),Answer(id = 1, label = "Management"))),
-                Question(id = 3, correctId = 2, label = "quelle est la couleur du cheval blanc d'Henry IV ?", answers = listOf(Answer(id = 0, label = "Noir"),Answer(id = 1, label = "Rouge"),Answer(id = 2, label = "Blanc"),Answer(id = 3, label = "Arc en ciel")))
-            )
-        )
-        QuestionScreen(quizzData)
-//        CV(CvData());
+    val questions = repository.questionState.collectAsState()
+    PreComposeApp {
+        val navigator = rememberNavigator()
+        MaterialTheme {
+            NavHost(
+                navigator = navigator,
+                initialRoute = "/welcome"
+            ) {
+                scene(route = "/welcome") {
+                    WelcomeScreen(navigator);
+                }
+                scene(route = "/quizz") {
+                    if(questions.value.isNotEmpty()) {
+                        QuestionScreen(navigator,questions.value)
+                    }
+                }
+                scene(route = "/score/{score}") { backStackEntry ->
+                    backStackEntry.path<String>("score")?.let { score ->
+                        ScoreScreen(navigator,score,questions.value.size);
+                    }
+                }
+            }
+        }
     }
+//        CV(CvData());
 }
 
 @Composable
 @OptIn(ExperimentalResourceApi::class)
-internal fun CV(data:CvData) {
+internal fun CV(data: CvData) {
     Row(modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.padding(start = 10.dp))
         Column(modifier = Modifier.width(250.dp)) {
@@ -115,7 +132,6 @@ internal fun CV(data:CvData) {
         }
     }
 }
-
 @Composable
 internal fun Par(data: ParData) {
     Spacer(modifier = Modifier.padding(top = 10.dp))
@@ -125,7 +141,6 @@ internal fun Par(data: ParData) {
         Text(data.description)
     }
 }
-
 @Composable
 internal fun Language(title: String, score: Int) {
     Row {
@@ -140,7 +155,7 @@ internal fun Language(title: String, score: Int) {
 }
 
 @Composable
-internal fun WelcomeScreen() {
+internal fun WelcomeScreen(navigator: Navigator) {
     Column(
         modifier = Modifier.fillMaxHeight().fillMaxWidth().background(color = Color.DarkGray),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -152,8 +167,10 @@ internal fun WelcomeScreen() {
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
                 Text(text = "Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Text(text = "A simple Quizz to discover KMP, KMM and compose")
-                Button(onClick = {}) {
+                Text(text = "A simple Quizz to test")
+                Button(onClick = {
+                    navigator.navigate(route = "/quizz")
+                }) {
                     Text(text = "Start Quizz")
                 }
             }
@@ -162,7 +179,7 @@ internal fun WelcomeScreen() {
 }
 
 @Composable
-internal fun ScoreScreen(score: String) {
+internal fun ScoreScreen(navigator: Navigator, score: String, size: Int) {
     Column(
         modifier = Modifier.fillMaxHeight().fillMaxWidth().background(color = Color.DarkGray),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -174,8 +191,10 @@ internal fun ScoreScreen(score: String) {
                 modifier = Modifier.padding(10.dp,2.dp,10.dp,10.dp)
             ) {
                 Text(text = "score")
-                Text(text = score, fontWeight = FontWeight.SemiBold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 10.dp))
-                Button(onClick = {}) {
+                Text(text = "$score/$size", fontWeight = FontWeight.SemiBold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 10.dp))
+                Button(onClick = {
+                    navigator.navigate(route = "/quizz")
+                }) {
                     Text(text = "Retake the Quizz")
                 }
             }
@@ -184,7 +203,7 @@ internal fun ScoreScreen(score: String) {
 }
 
 @Composable
-internal fun QuestionScreen(quizzData : Quizz) {
+internal fun QuestionScreen(navigator: Navigator,questions : List<Question>) {
     var score by remember { mutableStateOf(0) }
     var answerId by remember { mutableStateOf(-1) }
     var currentIndex by remember { mutableStateOf(0) }
@@ -197,11 +216,11 @@ internal fun QuestionScreen(quizzData : Quizz) {
                     modifier = Modifier.padding(bottom = 10.dp),
                     onClick = {
                         if (answerId > -1) {
-                            if (answerId == quizzData.questions[currentIndex].correctId && score < quizzData.questions.size) {
+                            if (answerId == questions[currentIndex].correctAnswerId && score < questions.size) {
                                 score++
                             }
-                            if (currentIndex + 1 >= quizzData.questions.size) {
-//                                currentIndex = 0  //reset Quizz
+                            if (currentIndex + 1 >= questions.size) {
+                                navigator.navigate(route = "/score/$score")
                             }
                             else {
                                 currentIndex++
@@ -212,7 +231,7 @@ internal fun QuestionScreen(quizzData : Quizz) {
                 ) {
                     Text(text = "Next")
                 }
-                LinearProgressIndicator(progress = currentIndex.toFloat()/quizzData.questions.size.toFloat(), modifier = Modifier.fillMaxWidth().height(20.dp))
+                LinearProgressIndicator(progress = currentIndex.toFloat()/questions.size.toFloat(), modifier = Modifier.fillMaxWidth().height(20.dp))
             }
         }
     ) {
@@ -222,26 +241,16 @@ internal fun QuestionScreen(quizzData : Quizz) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
-                    Text(text = quizzData.questions[currentIndex].label, fontSize = 20.sp)
+                    Text(text = questions[currentIndex].label, fontSize = 20.sp)
                 }
             }
-            quizzData.questions[currentIndex].answers.forEach {
+            questions[currentIndex].answers.forEach {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(
                         onClick = {answerId = it.id},
                         selected = answerId == it.id
                     )
                     Text(it.label)
-                }
-            }
-            if (currentIndex+1 >= quizzData.questions.size) {
-                Card(modifier = Modifier.padding(top = 20.dp, bottom = 50.dp)) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                    ) {
-                        Text(text = "score : " + score + "/" + quizzData.questions.size, fontSize = 12.sp)
-                    }
                 }
             }
         }

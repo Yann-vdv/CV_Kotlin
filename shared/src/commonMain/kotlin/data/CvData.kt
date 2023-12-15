@@ -1,3 +1,5 @@
+package data
+
 data class CvData(
     val firstName: String = "Yann",
     val lastName: String = "Van De Veire",
