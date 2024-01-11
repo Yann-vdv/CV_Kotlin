@@ -1,6 +1,7 @@
 package network
 
-import data.Quiz
+import data.Film
+import data.FilmSearchRes
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -9,7 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-class QuizAPI {
+class FilmAPI {
     private val httpClient = HttpClient {
         install(ContentNegotiation) {
             json(
@@ -20,11 +21,20 @@ class QuizAPI {
                 })
         }
     }
-    suspend fun getAllQuestions(): Quiz {
+    suspend fun getAllFilms(): List<Film> {
         try {
-            return httpClient.get("https://awl.li/devoxxkmm2023").body()
+            return httpClient.get("https://swapi.dev/api/films").body()
         } catch (err:Exception) {
             throw err;
+        }
+    }
+
+    suspend fun getFilm(name:String): FilmSearchRes {
+        try {
+            return httpClient.get("https://swapi.dev/api/films/?search=$name").body()
+        } catch (err:Exception) {
+            return FilmSearchRes(count = 0, results = listOf())
+            //throw err;
         }
     }
 }
