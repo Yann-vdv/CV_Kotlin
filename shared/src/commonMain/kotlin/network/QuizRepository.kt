@@ -1,3 +1,5 @@
+package network
+
 import data.Answer
 import data.Question
 import kotlinx.coroutines.CoroutineScope

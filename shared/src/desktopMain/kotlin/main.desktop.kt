@@ -1,7 +1,6 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import data.CvData
 
 actual fun getPlatformName(): String = "Desktop"
 
@@ -26,11 +25,3 @@ fun AppPreview() {
 //    )
 //    QuestionScreen(quizzData.questions);
 //}
-
-@Preview
-@Composable
-fun CVPreview() {
-    MaterialTheme {
-        CV(CvData());
-    }
-}

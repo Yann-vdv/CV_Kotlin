@@ -1,24 +1,35 @@
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
+import androidx.compose.material.Icon
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,13 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import data.CvData
-import data.ParData
 import data.Question
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
@@ -42,6 +54,7 @@ import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
+import network.QuizRepository
 
 private val repository = QuizRepository()
 
@@ -61,7 +74,8 @@ fun App() {
                 }
                 scene(route = "/quizz") {
                     if(questions.value.isNotEmpty()) {
-                        QuestionScreen(navigator,questions.value)
+//                      QuestionScreen(navigator,questions.value)
+                        guessMovieScreen();
                     }
                 }
                 scene(route = "/score/{score}") { backStackEntry ->
@@ -72,87 +86,112 @@ fun App() {
             }
         }
     }
-//        CV(CvData());
 }
 
+var searchResults by mutableStateOf<List<String>>(emptyList()) //liste de réponses fausses de l'utilisateur
+var searchText by mutableStateOf<String>("") //valeur entrée par l'utilisateur
+var hintBlocks by mutableStateOf<List<String>>(listOf("Indice 1","Indice 2","Indice 3","Indice 4","Indice 5", "Indice 6", "Indice 7", "Indice 8")) //bloc de texte pour les indices
+
 @Composable
-@OptIn(ExperimentalResourceApi::class)
-internal fun CV(data: CvData) {
-    Row(modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState())) {
-        Spacer(modifier = Modifier.padding(start = 10.dp))
-        Column(modifier = Modifier.width(250.dp)) {
-//                        AsyncImage(
-//                            model = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-//                            contentDescription = "Photo de profil"
-//                        )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.width(250.dp)
-            ) {
-                Image(
-                    painterResource("compose-multiplatform.xml"),
-                    contentDescription = "Compose Multiplatform icon",
-                    modifier = Modifier.size(140.dp)
+fun guessMovieScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color(0xFF000080))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            TextField(
+                value = searchText,
+                onValueChange = {
+                    searchText = it
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .border(1.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = Color.White),
+                placeholder = { Text("Taper le nom du film") },
+                singleLine = true,
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = null
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        search(searchText)
+                        searchText = ""
+                    }
                 )
-                Text(
-                    data.lastName,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 25.sp,
-                    textAlign = TextAlign.Center
-                )
-                Text(data.firstName, fontWeight = FontWeight.Bold, fontSize = 25.sp)
-                Text(data.age.toString() + " ans", fontWeight = FontWeight.SemiBold)
-                Text(data.subject, fontWeight = FontWeight.SemiBold)
-            }
-            Text("PROFIL", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text(data.profilDesc)
-            Text("LANGUES", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            data.languages.forEach { langue ->
-                Language(
-                    title = langue.name,
-                    score = langue.score
-                )
-            }
-            Text("CONTACT", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text("TELEPHONE :", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text(data.phone)
-            Text("E-MAIL :", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text(data.email)
-        }
-        Spacer(modifier = Modifier.padding(start = 16.dp))
-        Column(modifier = Modifier.padding(end = 20.dp)) {
-            Text(
-                "EXPERIENCES PROFESSIONNELLES",
-                fontWeight = FontWeight.Bold,
-                fontSize = 25.sp
             )
-            data.paragraph.forEach { para -> Par(para) }
-            Text("FORMATIONS", fontWeight = FontWeight.Bold, fontSize = 25.sp)
-            data.paragraph2.forEach { para -> Par(para) }
+        }
+
+        hintBlocks.take(searchResults.size+3).forEach { hintBlock ->
+            Text(
+                text = hintBlock,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .background(Color.Green)
+            )
+        }
+
+        if (searchResults.isNotEmpty()) {
+            Text(
+                text = "Réponses :",
+                textAlign = TextAlign.Center,
+                color = Color.White,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF000080))
+        ) {
+            items(searchResults.reversed()) { result ->
+                Text(
+                    text = result,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    textDecoration = TextDecoration.LineThrough,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
 }
-@Composable
-internal fun Par(data: ParData) {
-    Spacer(modifier = Modifier.padding(top = 10.dp))
-    Column {
-        Text(text = data.title, fontWeight = FontWeight.Bold)
-        Text(data.date)
-        Text(data.description)
+
+
+fun search(searchText: String?) {
+    val filmStarWars = "A New Hope"
+    if (!searchText.isNullOrBlank() && !searchText.equals(filmStarWars, ignoreCase = true)) {
+        println("Ce n'est pas le bon film : $searchText")
+
+        if (hintBlocks.size < 5+3) { //A chaque fois que l'utilisateur rentre une mauvaise réponse alors
+            hintBlocks += "Nouvel indice pour \"$searchText\"" //on dévoile un indice (il faut faire la logique de récupération)
+        }
+        searchResults = (searchResults + searchText).distinct()
     }
 }
-@Composable
-internal fun Language(title: String, score: Int) {
-    Row {
-        Text(text = title, fontWeight = FontWeight.SemiBold)
-        Spacer(modifier = Modifier.padding(end = 5.dp))
-        if (score == 1) Text(text = "X")
-        else if (score==2) Text(text = "XX")
-        else if (score==3) Text(text = "XXX")
-        else if (score==4) Text(text = "XXXX")
-        else if (score==5) Text(text = "XXXXX")
-    }
-}
+
 
 @Composable
 internal fun WelcomeScreen(navigator: Navigator) {
