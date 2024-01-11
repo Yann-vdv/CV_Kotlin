@@ -20,6 +20,8 @@ class FilmRepository {
 
     private suspend fun fetchFilms(): List<Film> = filmAPI.getAllFilms()
 
+    public suspend fun getFilmByName(name:String): Boolean = filmAPI.getFilm(name).count == 1;
+
     private fun updateFilms(){
 
         coroutineScope.launch {
