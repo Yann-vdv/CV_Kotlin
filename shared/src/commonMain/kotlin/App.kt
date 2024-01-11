@@ -1,24 +1,18 @@
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -46,22 +40,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import data.Film
 import data.Question
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
-import network.QuizRepository
+import network.FilmRepository
 
-private val repository = QuizRepository()
+private val repository = FilmRepository()
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
-    val questions = repository.questionState.collectAsState()
+    val films = repository.filmsState.collectAsState()
     PreComposeApp {
         val navigator = rememberNavigator()
         MaterialTheme {
@@ -73,14 +67,13 @@ fun App() {
                     WelcomeScreen(navigator);
                 }
                 scene(route = "/quizz") {
-                    if(questions.value.isNotEmpty()) {
-//                      QuestionScreen(navigator,questions.value)
-                        guessMovieScreen();
+                    if(films.value.isNotEmpty()) {
+                        guessMovieScreen(films.value)
                     }
                 }
                 scene(route = "/score/{score}") { backStackEntry ->
                     backStackEntry.path<String>("score")?.let { score ->
-                        ScoreScreen(navigator,score,questions.value.size);
+                        ScoreScreen(navigator,score,films.value.size);
                     }
                 }
             }
@@ -93,7 +86,7 @@ var searchText by mutableStateOf<String>("") //valeur entrée par l'utilisateur
 var hintBlocks by mutableStateOf<List<String>>(listOf("Indice 1","Indice 2","Indice 3","Indice 4","Indice 5", "Indice 6", "Indice 7", "Indice 8")) //bloc de texte pour les indices
 
 @Composable
-fun guessMovieScreen() {
+fun guessMovieScreen(films: List<Film?>,) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -128,7 +121,7 @@ fun guessMovieScreen() {
                 ),
                 keyboardActions = KeyboardActions(
                     onSearch = {
-                        search(searchText)
+                        search(searchText, films)
                         searchText = ""
                     }
                 )
@@ -180,10 +173,14 @@ fun guessMovieScreen() {
 }
 
 
-fun search(searchText: String?) {
+fun search(searchText: String?, films: List<Film?>) {
     val filmStarWars = "A New Hope"
     if (!searchText.isNullOrBlank() && !searchText.equals(filmStarWars, ignoreCase = true)) {
-        println("Ce n'est pas le bon film : $searchText")
+        println("Requête films : ")
+        films.forEach { film ->
+            println("${film?.title}")
+        }
+
 
         if (hintBlocks.size < 5+3) { //A chaque fois que l'utilisateur rentre une mauvaise réponse alors
             hintBlocks += "Nouvel indice pour \"$searchText\"" //on dévoile un indice (il faut faire la logique de récupération)

@@ -14,14 +14,14 @@ class FilmAPI {
     private val httpClient = HttpClient {
         install(ContentNegotiation) {
             json(
-                contentType = ContentType.Text.Plain, // because Github is not returning an 'application/json' header
+//                contentType = ContentType.Text.Plain, // because Github is not returning an 'application/json' header
                 json = Json {
                     ignoreUnknownKeys = true
                     useAlternativeNames = false
                 })
         }
     }
-    suspend fun getAllFilms(): List<Film> {
+    suspend fun getAllFilms(): FilmSearchRes {
         try {
             return httpClient.get("https://swapi.dev/api/films").body()
         } catch (err:Exception) {

@@ -11,14 +11,14 @@ class FilmRepository {
     private val filmAPI = FilmAPI()
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    private var _filmsState=  MutableStateFlow(listOf<Film>())
+    private var _filmsState=  MutableStateFlow(listOf<Film?>())
     val filmsState = _filmsState
 
     init {
         updateFilms()
     }
 
-    private suspend fun fetchFilms(): List<Film> = filmAPI.getAllFilms()
+    private suspend fun fetchFilms(): List<Film?> = filmAPI.getAllFilms().results
 
     private fun updateFilms(){
 
@@ -26,7 +26,7 @@ class FilmRepository {
             try {
                 _filmsState.update { fetchFilms() }
             } catch (err:Exception) {
-                //println(err)
+//                println(err)
                 _filmsState.update { cache }
             }
         }
