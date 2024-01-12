@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -26,7 +27,8 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.padding(bottom = 5.dp))
@@ -35,7 +37,7 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
                 if (film != null) {
                     Card() {
                         Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp).fillMaxWidth()
                         ) {
                             Text(text = "${film.title}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                             Text(text = "N°${film.episode_id}")
@@ -43,7 +45,7 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
                             Text(text = "Director : ${film.director}")
                         }
                     }
-                    Spacer(modifier = Modifier.padding(bottom = 5.dp))
+                    Spacer(modifier = Modifier.padding(bottom = 10.dp))
                 }
             }
         }else {

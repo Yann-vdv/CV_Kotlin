@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,6 +59,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 private val repository = FilmRepository()
 private val repositoryPlanet = PlanetRepository()
 
+expect fun getPlatformName(): String
 @Composable
 internal fun WelcomeScreen(navigator: Navigator) {
     Column(
@@ -65,45 +67,107 @@ internal fun WelcomeScreen(navigator: Navigator) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
+        Spacer(modifier = Modifier.padding(top = 10.dp))
         Text(text = "StarWars Guesser", fontWeight = FontWeight.Bold, fontSize = 30.sp, color = Color.White)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Card() {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(text = "Star Wars Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Button(onClick = {
-                        navigator.navigate(route = "/quizz")
-                    }) {
-                        Text(text = "Guess the movie")
+        if (getPlatformName() == "Desktop") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Card() {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Star Wars Quizz",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Button(onClick = {
+                            navigator.navigate(route = "/quizz")
+                        }) {
+                            Text(text = "Guess the movie")
+                        }
+                        Button(onClick = {
+                            navigator.navigate(route = "/planets")
+                        }) {
+                            Text(text = "Guess the planet")
+                        }
                     }
-                    Button(onClick = {
-                        navigator.navigate(route = "/planets")
-                    }) {
-                        Text(text = "Guess the planet")
+                }
+                Card() {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Star Wars Library",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Button(onClick = {
+                            navigator.navigate(route = "/moviesRepo")
+                        }) {
+                            Text(text = "Consult movies")
+                        }
+                        Button(onClick = {
+                            navigator.navigate(route = "/planetsRepo")
+                        }) {
+                            Text(text = "Consult planets")
+                        }
                     }
                 }
             }
-            Card() {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(text = "Star Wars Library", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Button(onClick = {
-                        navigator.navigate(route = "/moviesRepo")
-                    }) {
-                        Text(text = "Consult movies")
+        } else {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Card() {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Star Wars Quizz",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Button(onClick = {
+                            navigator.navigate(route = "/quizz")
+                        }) {
+                            Text(text = "Guess the movie")
+                        }
+                        Button(onClick = {
+                            navigator.navigate(route = "/planets")
+                        }) {
+                            Text(text = "Guess the planet")
+                        }
                     }
-                    Button(onClick = {
-                        navigator.navigate(route = "/planetsRepo")
-                    }) {
-                        Text(text = "Consult planets")
+                }
+                Card() {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Star Wars Library",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Button(onClick = {
+                            navigator.navigate(route = "/moviesRepo")
+                        }) {
+                            Text(text = "Consult movies")
+                        }
+                        Button(onClick = {
+                            navigator.navigate(route = "/planetsRepo")
+                        }) {
+                            Text(text = "Consult planets")
+                        }
                     }
                 }
             }
@@ -582,5 +646,3 @@ internal fun EndScreenPlanet(navigator: Navigator, isSucess: Boolean, planets: L
         }
     }
 }
-
-expect fun getPlatformName(): String

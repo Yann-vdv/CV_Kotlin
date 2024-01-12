@@ -109,7 +109,7 @@ fun PlanetsScreen(navigator: Navigator, planets: List<Planet?>) {
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.padding(bottom = 5.dp))
+                    Spacer(modifier = Modifier.padding(bottom = 10.dp))
                 }
         } else {
             Card(
