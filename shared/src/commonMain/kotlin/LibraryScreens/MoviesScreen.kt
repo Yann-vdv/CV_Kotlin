@@ -52,7 +52,11 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
             Card(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
             ) {
-                Text(text = "movies are loading")
+                Column(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "movies are loading")
+                }
             }
         }
         Button(onClick = {
