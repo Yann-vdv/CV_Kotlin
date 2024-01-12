@@ -29,14 +29,19 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Spacer(modifier = Modifier.padding(bottom = 5.dp))
         if (films.size > 0) {
             films.forEach { film: Film? ->
                 if (film != null) {
                     Card() {
-                        Text(text = "${film.title}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(text = "N°${film.episode_id}")
-                        Text(text = "Release_date : ${film.release_date}")
-                        Text(text = "Director : ${film.director}")
+                        Column(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(text = "${film.title}", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            Text(text = "N°${film.episode_id}")
+                            Text(text = "Release_date : ${film.release_date}")
+                            Text(text = "Director : ${film.director}")
+                        }
                     }
                     Spacer(modifier = Modifier.padding(bottom = 5.dp))
                 }
