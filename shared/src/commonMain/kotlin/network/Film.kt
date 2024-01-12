@@ -44,4 +44,12 @@ class FilmAPI {
             throw err;
         }
     }
+
+    suspend fun getPlanetReq(req:String): Planet {
+        try {
+            return httpClient.get(req).body()
+        } catch (err:Exception) {
+            throw err;
+        }
+    }
 }
