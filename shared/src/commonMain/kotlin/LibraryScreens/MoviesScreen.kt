@@ -52,7 +52,7 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
             Card(
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
             ) {
-                Text(text = "planets are loading")
+                Text(text = "movies are loading")
             }
         }
         Button(onClick = {
