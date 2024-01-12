@@ -21,7 +21,7 @@ class PlanetRepository {
 
     private suspend fun fetchPlanets(): List<Planet?> = planetAPI.getAllPlanets().results;
 
-    suspend fun getPlanetByName(name:String): Boolean = planetAPI.getPlanetByName(name).count == 1;
+    private suspend fun fetchPlanetByName(name:String): List<Planet?> = planetAPI.getPlanetByName(name).results;
 
     suspend fun getPlanet(id:Int): Planet = planetAPI.getPlanet(id);
 
@@ -32,6 +32,17 @@ class PlanetRepository {
         coroutineScope.launch {
             try {
                 _planetsState.update { fetchPlanets() }
+            } catch (err:Exception) {
+                println(err)
+                _planetsState.update { cache }
+            }
+        }
+    }
+
+    fun getPlanetByName(text:String){
+        coroutineScope.launch {
+            try {
+                _planetsState.update { fetchPlanetByName(text) }
             } catch (err:Exception) {
                 println(err)
                 _planetsState.update { cache }
