@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -25,6 +28,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,15 +44,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import data.Film
 import data.Question
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import kotlinx.coroutines.delay
 import moe.tlaster.precompose.PreComposeApp
 import moe.tlaster.precompose.navigation.NavHost
 import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
 import network.FilmRepository
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.random.Random
 
 private val repository = FilmRepository()
@@ -86,19 +92,118 @@ private val repository = FilmRepository()
     var searchText by mutableStateOf<String>("") //valeur entrée par l'utilisateur
     var hintBlocks by mutableStateOf<List<String>>(emptyList()) //bloc de texte pour les indices
     var currentRandomFilm: Film? = null
-
+    var isSucess: Boolean = false;
+    var isFailed: Boolean = false;
 
     @Composable
-    fun guessMovieScreen(films: List<Film?>,) {
+    fun guessMovieScreen(films: List<Film?>) {
         val randomValues = Random.nextInt(0, 5)
-
         randomMovie(films, randomValues)
 
+
+        if (isSucess) {
+            var offsetY by remember { mutableStateOf(0.dp) }
+
+            LaunchedEffect(isSucess) {
+                while (offsetY < 300.dp) {
+                    delay(16L)
+                    offsetY -= 1.dp
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+
+                    modifier = Modifier.padding(8.dp, 10.dp)
+                        .zIndex(2f)
+                        .background(Color.Black)
+                           .fillMaxHeight()
+                           .fillMaxWidth(),
+
+                )
+                Text(
+                    text = "Congratulation you found the movie",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    modifier = Modifier.padding(8.dp)
+                )
+                Text(
+                    text = "${currentRandomFilm?.opening_crawl}",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 40.sp,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .offset(y = offsetY)
+                )
+            }
+        } else if (isFailed) {
+
+            var offsetY by remember { mutableStateOf(0.dp) }
+
+            LaunchedEffect(isSucess) {
+                while (offsetY < 300.dp) {
+                    delay(16L)
+                    offsetY -= 1.dp
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+
+                    modifier = Modifier.padding(8.dp, 10.dp)
+                        .zIndex(2f)
+                        .background(Color.Black)
+                        .fillMaxHeight()
+                        .fillMaxWidth(),
+
+                    )
+                Text(
+                    text = "You failed !",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    modifier = Modifier.padding(8.dp)
+                )
+                Text(
+                    text = "${currentRandomFilm?.opening_crawl}",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 40.sp,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .offset(y = offsetY)
+                )
+            }
+            } else {
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color(0xFF000080))
+                .background(Color.Black)
         ) {
             Row(
                 modifier = Modifier
@@ -116,7 +221,7 @@ private val repository = FilmRepository()
                         .border(1.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
                         .clip(RoundedCornerShape(16.dp))
                         .background(color = Color.White),
-                    placeholder = { Text("Taper le nom du film") },
+                    placeholder = { Text("Type the name of the movie : ") },
                     singleLine = true,
                     trailingIcon = {
                         Icon(
@@ -145,37 +250,39 @@ private val repository = FilmRepository()
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
-                        .background(Color.Green)
+                        .background(Color.Black)
                 )
             }
 
             if (searchResults.isNotEmpty()) {
                 Text(
-                    text = "Réponses :",
+                    text = "Answers :",
                     textAlign = TextAlign.Center,
                     color = Color.White,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
+                        .background(Color.Black)
                 )
             }
 
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF000080))
+                    .background(Color.Black)
             ) {
                 items(searchResults.reversed()) { result ->
-                    Text(
-                        text = result,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        textDecoration = TextDecoration.LineThrough,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth()
-                    )
+                        Text(
+                            text = result,
+                            color = Color.Yellow,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            textDecoration = TextDecoration.LineThrough,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
@@ -206,14 +313,18 @@ fun randomMovie(films: List<Film?>, randomValue: Int) {
 
         if (currentRandomFilm != null && searchText.equals(currentRandomFilm?.title, ignoreCase = true)) {
             println("Bravo! Vous avez trouvé le film.")
+            isSucess = true;
         } else {
             searchResults = (searchResults + searchText).distinct() as List<String>
             println("Mauvaise réponse. Essayez encore.")
         }
-
-            if (hintBlocks.size < 5) {
-                hintBlocks += "Nouvel indice pour \"$searchText\""
-            }
+        if (hintBlocks.size < 5) {
+            hintBlocks += "Nouvel indice pour \"$searchText\""
+        }
+        if(searchResults.size > 3)
+        {
+         isFailed = true;
+        }
     }
 
 
