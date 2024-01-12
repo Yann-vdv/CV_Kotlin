@@ -48,8 +48,8 @@ class PlanetRepository {
             climate = "arid",
             gravity = "1 standard",
             terrain = "desert",
-            surface_water = 1,
-            population = 200000,
+            surface_water = "1",
+            population = "200000",
             residents = listOf(
                 "https://swapi.dev/api/people/1/",
                 "https://swapi.dev/api/people/2/",

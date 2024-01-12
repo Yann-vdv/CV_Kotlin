@@ -99,4 +99,5 @@ dependencies {
     implementation("androidx.core:core-ktx:+")
     implementation("androidx.core:core-ktx:+")
     implementation("androidx.core:core-ktx:+")
+    implementation("androidx.activity:activity-ktx:1.8.2")
 }
