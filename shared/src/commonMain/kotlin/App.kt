@@ -55,7 +55,6 @@ import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
 import network.FilmRepository
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlin.random.Random
 
 private val repository = FilmRepository()
 
@@ -75,13 +74,13 @@ private val repository = FilmRepository()
                     }
                     scene(route = "/quizz") {
                         if(films.value.isNotEmpty()) {
+                            randomMovie(films.value)
                             guessMovieScreen(navigator, films.value)
                         }
                     }
-                    scene(route = "/score/{score}") { backStackEntry ->
-                        backStackEntry.path<String>("score")?.let { score ->
-                            ScoreScreen(navigator,score,films.value.size);
-                        }
+                    scene(route = "/EndScreen/{isSucess}") {
+                        it.path<Boolean>("isSucess")?.let {
+                           EndScreen(navigator, it, films.value ) }
                     }
                 }
             }
@@ -93,78 +92,9 @@ private val repository = FilmRepository()
     var hintBlocks by mutableStateOf<List<String>>(emptyList()) //bloc de texte pour les indices
     var currentRandomFilm: Film? = null
     var isSucess: Boolean = false;
-    var isFailed: Boolean = false;
 
     @Composable
     fun guessMovieScreen(navigator: Navigator, films: List<Film?>) {
-        randomMovie(films)
-
-        if (isSucess || isFailed) {
-            var offsetY by remember { mutableStateOf(0.dp) }
-
-            LaunchedEffect(isSucess) {
-                while (offsetY < 300.dp) {
-                    delay(16L)
-                    offsetY -= 1.dp
-                }
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-                    .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-
-                    modifier = Modifier.padding(8.dp, 10.dp)
-                        .zIndex(2f)
-                        .background(Color.Black)
-                           .fillMaxHeight()
-                           .fillMaxWidth(),
-                )
-                if(isSucess)
-                {
-                    Text(
-                        text = "Congratulation you found the movie",
-                        textAlign = TextAlign.Center,
-                        color = Color.Yellow,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-                if(isFailed)
-                {
-                    Text(
-                        text = "You failed ! ",
-                        textAlign = TextAlign.Center,
-                        color = Color.Yellow,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-
-                Text(
-                    text = "${currentRandomFilm?.opening_crawl}",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .offset(y = offsetY)
-                )
-                Button(onClick = {
-                    reset(navigator);
-                }) {
-                    Text(text = "Retake the Quizz")
-                }
-            }
-        } else {
 
         Column(
             modifier = Modifier
@@ -200,7 +130,7 @@ private val repository = FilmRepository()
                     ),
                     keyboardActions = KeyboardActions(
                         onSearch = {
-                            search(searchText)
+                            search(searchText, navigator)
                             searchText = ""
                         }
                     )
@@ -252,7 +182,7 @@ private val repository = FilmRepository()
                 }
             }
         }
-    }
+
 
 var hintBlocksGenerated = false
 
@@ -273,27 +203,27 @@ fun randomMovie(films: List<Film?>) {
     }
 }
 
-fun reset(navigator: Navigator) {
-    isFailed = false;
-    isSucess = false;
+fun reset(navigator: Navigator, films: List<Film?>) {
+    randomMovie(films)
     navigator.navigate(route = "/welcome");
 }
 
-    fun search(searchText: String?) {
-
+    fun search(searchText: String?, navigator: Navigator) {
         if (currentRandomFilm != null && searchText.equals(currentRandomFilm?.title, ignoreCase = true)) {
             println("Bravo! Vous avez trouvé le film.")
             isSucess = true;
+            navigator.navigate(route = "/EndScreen/$isSucess")
         } else {
             searchResults = (searchResults + searchText).distinct() as List<String>
-            println("Mauvaise réponse. Essayez encore.")
+            println("Mauvaise réponse, essayez encore.")
         }
         if (hintBlocks.size < 5) {
             hintBlocks += "Nouvel indice pour \"$searchText\""
         }
         if(searchResults.size > 3)
         {
-         isFailed = true;
+            isSucess = false;
+            navigator.navigate(route = "/EndScreen/$isSucess")
         }
     }
 
@@ -322,27 +252,70 @@ internal fun WelcomeScreen(navigator: Navigator) {
 }
 
 @Composable
-internal fun ScoreScreen(navigator: Navigator, score: String, size: Int) {
-    Column(
-        modifier = Modifier.fillMaxHeight().fillMaxWidth().background(color = Color.DarkGray),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Card(backgroundColor = Color.Green) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(10.dp,2.dp,10.dp,10.dp)
-            ) {
-                Text(text = "score")
-                Text(text = "$score/$size", fontWeight = FontWeight.SemiBold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 10.dp))
-                Button(onClick = {
-                    navigator.navigate(route = "/quizz")
-                }) {
-                    Text(text = "Retake the Quizz")
-                }
+internal fun EndScreen(navigator: Navigator, isSucess: Boolean, films: List<Film?>) {
+        var offsetY by remember { mutableStateOf(0.dp) }
+
+        LaunchedEffect(true) {
+            while (offsetY < 300.dp) {
+                delay(16L)
+                offsetY -= 1.dp
             }
         }
-    }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
+                textAlign = TextAlign.Center,
+                color = Color.Yellow,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+
+                modifier = Modifier.padding(8.dp, 10.dp)
+                    .zIndex(2f)
+                    .background(Color.Black)
+                    .fillMaxHeight()
+                    .fillMaxWidth(),
+            )
+            if(isSucess)
+            {
+                Text(
+                    text = "Congratulation you found the movie",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            if(!isSucess)
+            {
+                Text(
+                    text = "You failed ! ",
+                    textAlign = TextAlign.Center,
+                    color = Color.Yellow,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            Text(
+                text = "${currentRandomFilm?.opening_crawl}",
+                textAlign = TextAlign.Center,
+                color = Color.Yellow,
+                fontWeight = FontWeight.Bold,
+                fontSize = 40.sp,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .offset(y = offsetY)
+            )
+            Button(onClick = {
+                reset(navigator, films);
+            }) {
+                Text(text = "Retake the Quizz")
+            }
+        }
 }
 
 @Composable
