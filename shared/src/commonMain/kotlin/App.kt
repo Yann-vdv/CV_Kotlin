@@ -67,7 +67,9 @@ internal fun WelcomeScreen(navigator: Navigator) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        Spacer(modifier = Modifier.padding(top = 10.dp))
+        if (getPlatformName() != "Desktop") {
+            Spacer(modifier = Modifier.padding(top = 10.dp))
+        }
         Text(text = "StarWars Guesser", fontWeight = FontWeight.Bold, fontSize = 30.sp, color = Color.White)
         if (getPlatformName() == "Desktop") {
             Row(
