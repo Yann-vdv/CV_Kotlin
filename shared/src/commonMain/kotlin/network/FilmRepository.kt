@@ -39,10 +39,6 @@ class FilmRepository {
 
     suspend fun getFilmByName(name:String): Boolean = filmAPI.getFilm(name).count == 1;
 
-    suspend fun getPlanet(id:Int): Planet = filmAPI.getPlanet(id);
-
-    suspend fun getPlanetReq(req:String): Planet = filmAPI.getPlanetReq(req);
-
     private fun updateFilms(){
 
         coroutineScope.launch {
