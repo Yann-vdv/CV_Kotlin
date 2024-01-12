@@ -75,7 +75,7 @@ private val repository = FilmRepository()
                     }
                     scene(route = "/quizz") {
                         if(films.value.isNotEmpty()) {
-                            guessMovieScreen(films.value)
+                            guessMovieScreen(navigator, films.value)
                         }
                     }
                     scene(route = "/score/{score}") { backStackEntry ->
@@ -96,12 +96,10 @@ private val repository = FilmRepository()
     var isFailed: Boolean = false;
 
     @Composable
-    fun guessMovieScreen(films: List<Film?>) {
-        val randomValues = Random.nextInt(0, 5)
-        randomMovie(films, randomValues)
+    fun guessMovieScreen(navigator: Navigator, films: List<Film?>) {
+        randomMovie(films)
 
-
-        if (isSucess) {
+        if (isSucess || isFailed) {
             var offsetY by remember { mutableStateOf(0.dp) }
 
             LaunchedEffect(isSucess) {
@@ -130,14 +128,26 @@ private val repository = FilmRepository()
                         .background(Color.Black)
                            .fillMaxHeight()
                            .fillMaxWidth(),
+                )
+                if(isSucess)
+                {
+                    Text(
+                        text = "Congratulation you found the movie",
+                        textAlign = TextAlign.Center,
+                        color = Color.Yellow,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+                if(isFailed)
+                {
+                    Text(
+                        text = "You failed ! ",
+                        textAlign = TextAlign.Center,
+                        color = Color.Yellow,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
 
-                )
-                Text(
-                    text = "Congratulation you found the movie",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    modifier = Modifier.padding(8.dp)
-                )
                 Text(
                     text = "${currentRandomFilm?.opening_crawl}",
                     textAlign = TextAlign.Center,
@@ -148,57 +158,13 @@ private val repository = FilmRepository()
                         .padding(8.dp)
                         .offset(y = offsetY)
                 )
-            }
-        } else if (isFailed) {
-
-            var offsetY by remember { mutableStateOf(0.dp) }
-
-            LaunchedEffect(isSucess) {
-                while (offsetY < 300.dp) {
-                    delay(16L)
-                    offsetY -= 1.dp
+                Button(onClick = {
+                    reset(navigator);
+                }) {
+                    Text(text = "Retake the Quizz")
                 }
             }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-
-                    modifier = Modifier.padding(8.dp, 10.dp)
-                        .zIndex(2f)
-                        .background(Color.Black)
-                        .fillMaxHeight()
-                        .fillMaxWidth(),
-
-                    )
-                Text(
-                    text = "You failed !",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    modifier = Modifier.padding(8.dp)
-                )
-                Text(
-                    text = "${currentRandomFilm?.opening_crawl}",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 40.sp,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .offset(y = offsetY)
-                )
-            }
-            } else {
+        } else {
 
         Column(
             modifier = Modifier
@@ -290,14 +256,12 @@ private val repository = FilmRepository()
 
 var hintBlocksGenerated = false
 
-fun randomMovie(films: List<Film?>, randomValue: Int) {
+fun randomMovie(films: List<Film?>) {
     if (!hintBlocksGenerated && films.isNotEmpty()) {
         currentRandomFilm = films.random()
 
-        println("Film sélectionné : ${currentRandomFilm?.title ?: "Aucun film trouvé"}")
-//        println("Release Date: ${currentRandomFilm?.release_date}")
-//        println("Director: ${currentRandomFilm?.director}")
-//        println("Opening Crawl: ${currentRandomFilm?.opening_crawl}")
+        println("Selected movie : ${currentRandomFilm?.title ?: "None movie found"}")
+
 
         hintBlocks += "Release Date: ${currentRandomFilm?.release_date ?: "N/A"}"
         hintBlocks += "Director: ${currentRandomFilm?.director ?: "N/A"}"
@@ -307,6 +271,12 @@ fun randomMovie(films: List<Film?>, randomValue: Int) {
 
         hintBlocksGenerated = true
     }
+}
+
+fun reset(navigator: Navigator) {
+    isFailed = false;
+    isSucess = false;
+    navigator.navigate(route = "/welcome");
 }
 
     fun search(searchText: String?) {
