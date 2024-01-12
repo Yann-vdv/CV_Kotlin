@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import data.Film
+import data.Planet
 import data.Question
 import kotlinx.coroutines.delay
 import moe.tlaster.precompose.PreComposeApp
@@ -57,11 +58,15 @@ import network.FilmRepository
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 private val repository = FilmRepository()
+private val repositoryPlanet = PlanetRepository()
+
 
     @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun App() {
         val films = repository.filmsState.collectAsState()
+        val planets = repository.planetsState.collectAsState()
+
         PreComposeApp {
             val navigator = rememberNavigator()
             MaterialTheme {
@@ -76,6 +81,12 @@ private val repository = FilmRepository()
                         if(films.value.isNotEmpty()) {
                             randomMovie(films.value)
                             guessMovieScreen(navigator, films.value)
+                        }
+                    }
+                    scene(route = "/planet") {
+                        if(planets.value.isNotEmpty()) {
+                            randomPlanet(planets.value)
+                            guessPlanetScreen(navigator, planets.value)
                         }
                     }
                     scene(route = "/EndScreen/{isSucess}") {
@@ -261,122 +272,215 @@ internal fun WelcomeScreen(navigator: Navigator) {
 
 @Composable
 internal fun EndScreen(navigator: Navigator, isSucess: Boolean, films: List<Film?>) {
-        var offsetY by remember { mutableStateOf(0.dp) }
+    var offsetY by remember { mutableStateOf(0.dp) }
 
-        LaunchedEffect(true) {
-            while (offsetY < 300.dp) {
-                delay(16L)
-                offsetY -= 1.dp
-            }
+    LaunchedEffect(true) {
+        while (offsetY < 300.dp) {
+            delay(16L)
+            offsetY -= 1.dp
         }
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
+            textAlign = TextAlign.Center,
+            color = Color.Yellow,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+
+            modifier = Modifier.padding(8.dp, 10.dp)
+                .zIndex(2f)
+                .background(Color.Black)
+                .fillMaxHeight()
+                .fillMaxWidth(),
+        )
+        if (isSucess) {
+            Text(
+                text = "Congratulation you found the movie",
+                textAlign = TextAlign.Center,
+                color = Color.Yellow,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+        if (!isSucess) {
+            Text(
+                text = "You failed ! ",
+                textAlign = TextAlign.Center,
+                color = Color.Yellow,
+                modifier = Modifier.padding(8.dp)
+            )
+        }
+
+        Text(
+            text = "${currentRandomFilm?.opening_crawl}",
+            textAlign = TextAlign.Center,
+            color = Color.Yellow,
+            fontWeight = FontWeight.Bold,
+            fontSize = 40.sp,
+            modifier = Modifier
+                .padding(8.dp)
+                .offset(y = offsetY)
+        )
+        Button(onClick = {
+            reset(navigator, films);
+        }) {
+            Text(text = "Retake the Quizz")
+        }
+    }
+
+    var searchResultsPlanet by mutableStateOf<List<String>>(emptyList()) //liste de réponses fausses de l'utilisateur
+    var searchTextPlanet by mutableStateOf<String>("") //valeur entrée par l'utilisateur
+    var hintBlocksPlanet by mutableStateOf<List<String>>(emptyList()) //bloc de texte pour les indices
+    var currentRandomPlanet: Film? = null
+    var isSucessPlanet: Boolean = false;
+
+}
+
+    @Composable
+    fun guessPlanetScreen(navigator: Navigator, films: List<Film?>) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = "Movie to find : ${currentRandomFilm?.title?.uppercase()}",
-                textAlign = TextAlign.Center,
-                color = Color.Yellow,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-
-                modifier = Modifier.padding(8.dp, 10.dp)
-                    .zIndex(2f)
-                    .background(Color.Black)
-                    .fillMaxHeight()
-                    .fillMaxWidth(),
-            )
-            if(isSucess)
-            {
-                Text(
-                    text = "Congratulation you found the movie",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-            if(!isSucess)
-            {
-                Text(
-                    text = "You failed ! ",
-                    textAlign = TextAlign.Center,
-                    color = Color.Yellow,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-
-            Text(
-                text = "${currentRandomFilm?.opening_crawl}",
-                textAlign = TextAlign.Center,
-                color = Color.Yellow,
-                fontWeight = FontWeight.Bold,
-                fontSize = 40.sp,
+            Row(
                 modifier = Modifier
-                    .padding(8.dp)
-                    .offset(y = offsetY)
-            )
-            Button(onClick = {
-                reset(navigator, films);
-            }) {
-                Text(text = "Retake the Quizz")
-            }
-        }
-}
-
-@Composable
-internal fun QuestionScreen(navigator: Navigator,questions : List<Question>) {
-    var score by remember { mutableStateOf(0) }
-    var answerId by remember { mutableStateOf(-1) }
-    var currentIndex by remember { mutableStateOf(0) }
-    Scaffold(
-        backgroundColor = Color.DarkGray,
-        modifier = Modifier.fillMaxHeight().fillMaxWidth(),
-        bottomBar = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(
-                    modifier = Modifier.padding(bottom = 10.dp),
-                    onClick = {
-                        if (answerId > -1) {
-                            if (answerId == questions[currentIndex].correctAnswerId && score < questions.size) {
-                                score++
-                            }
-                            if (currentIndex + 1 >= questions.size) {
-                                navigator.navigate(route = "/score/$score")
-                            }
-                            else {
-                                currentIndex++
-                                answerId = -1
-                            }
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                TextField(
+                    value = searchText,
+                    onValueChange = {
+                        searchText = it
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .border(1.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = Color.White),
+                    placeholder = { Text("Type the name of the movie : ") },
+                    singleLine = true,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            search(searchTextPlanet, navigator)
+                            searchTextPlanet = ""
                         }
-                    }
-                ) {
-                    Text(text = "Next")
+                    )
+                )
+            }
+
+            hintBlocksPlanet.take(searchResultsPlanet.size + 2).forEach { hintBlocksPlanet ->
+                val limitedText = hintBlocksPlanet.take(150)
+                Text(
+                    text = limitedText,
+                    color = Color.White,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .background(Color.Black)
+                )
+            }
+
+            if (searchResultsPlanet.isNotEmpty()) {
+                Text(
+                    text = "Answers :",
+                    textAlign = TextAlign.Center,
+                    color = Color.White,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .background(Color.Black)
+                )
+            }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            ) {
+                items(searchResultsPlanet.reversed()) { result ->
+                    Text(
+                        text = result,
+                        color = Color.Yellow,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
                 }
-                LinearProgressIndicator(progress = currentIndex.toFloat()/questions.size.toFloat(), modifier = Modifier.fillMaxWidth().height(20.dp))
             }
         }
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            Card(modifier = Modifier.padding(top = 20.dp, bottom = 50.dp)) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(text = questions[currentIndex].label, fontSize = 20.sp)
-                }
-            }
-            questions[currentIndex].answers.forEach {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(
-                        onClick = {answerId = it.id},
-                        selected = answerId == it.id
-                    )
-                    Text(it.label)
-                }
-            }
+    }
+
+
+    var hintBlocksGeneratedPlanet = false
+
+    fun randomPlanet(planets: List<Planet?>) {
+        if (!hintBlocksGeneratedPlanet && planets.isNotEmpty()) {
+            println("Planets : ${planets.size}")
+
+            currentRandomPlanet = planets.random()
+
+            println("Selected movie : ${currentRandomPlanet?.title ?: "No movie found"}")
+
+
+            hintBlocks += "Climate: ${currentRandomPlanet?.climate ?: "N/A"}"
+            hintBlocks += "Director: ${currentRandomPlanet?.director ?: "N/A"}"
+            hintBlocks += "Edited: ${currentRandomPlanet?.edited ?: "N/A"}"
+            hintBlocks += "producer: ${currentRandomPlanet?.producer ?: "N/A"}"
+            hintBlocks += "Opening Crawl: ${currentRandomPlanet?.opening_crawl ?: "N/A"}"
+
+            hintBlocksGeneratedPlanet = true
+        }
+    }
+
+    fun resetPlanet(navigator: Navigator, planets: List<Planet?>) {
+        hintBlocksGeneratedPlanet = false;
+        hintBlocksPlanet = emptyList();
+        currentRandomPlanet = null;
+        randomPlanet(planets)
+        hintBlocksGeneratedPlanet = false;
+        hintBlocksPlanet = emptyList();
+        searchResultsPlanet = emptyList();
+        navigator.navigate(route = "/welcome");
+    }
+
+    fun searchPlanet(searchText: String?, navigator: Navigator) {
+        if (currentRandomPlanet != null && searchText.equals(currentRandomPlanet?.title, ignoreCase = true)) {
+            println("Bravo! Vous avez trouvé la planet.")
+            isSucessPlanet = true;
+            navigator.navigate(route = "/EndScreen/$isSucess")
+        } else {
+            searchResultsPlanet = (searchResultsPlanet + searchTextPlanet).distinct() as List<String>
+            println("Mauvaise réponse, essayez encore.")
+        }
+        if (hintBlocksPlanet.size < 5) {
+            hintBlocksPlanet += "Nouvel indice pour \"$searchText\""
+        }
+        if(searchResultsPlanet.size > 3)
+        {
+            isSucessPlanet = false;
+            navigator.navigate(route = "/EndScreen/$isSucess")
         }
     }
 }
