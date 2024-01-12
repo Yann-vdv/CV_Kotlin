@@ -137,7 +137,7 @@ internal fun WelcomeScreen(navigator: Navigator) {
                     scene(route = "/planets") {
                         if(planets.value.isNotEmpty()) {
                             randomPlanet(planets.value)
-                            guessPlanetScreen(navigator, planets.value)
+                            guessPlanetScreen(navigator)
                         }
                     }
                     scene(route = "/EndScreen/{isSucess}") {
@@ -209,6 +209,7 @@ internal fun WelcomeScreen(navigator: Navigator) {
                 )
             }
 
+
             hintBlocks.take(searchResults.size + 2).forEach { hintBlock ->
                 val limitedText = hintBlock.take(150)
                 Text(
@@ -261,18 +262,14 @@ var hintBlocksGenerated = false
 fun randomMovie(films: List<Film?>) {
     if (!hintBlocksGenerated && films.isNotEmpty()) {
         println("movies : ${films.size}")
-
         currentRandomFilm = films.random()
-
         println("Selected movie : ${currentRandomFilm?.title ?: "No movie found"}")
-
 
         hintBlocks += "Release Date: ${currentRandomFilm?.release_date ?: "N/A"}"
         hintBlocks += "Director: ${currentRandomFilm?.director ?: "N/A"}"
         hintBlocks += "Edited: ${currentRandomFilm?.edited ?: "N/A"}"
         hintBlocks += "producer: ${currentRandomFilm?.producer ?: "N/A"}"
         hintBlocks += "Opening Crawl: ${currentRandomFilm?.opening_crawl ?: "N/A"}"
-
         hintBlocksGenerated = true
     }
 }
@@ -330,28 +327,38 @@ internal fun EndScreen(navigator: Navigator, isSucess: Boolean, films: List<Film
             textAlign = TextAlign.Center,
             color = Color.Yellow,
             fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-
-            modifier = Modifier.padding(8.dp, 10.dp)
-                .zIndex(2f)
+            fontSize = 35.sp,
+            modifier = Modifier
+                .fillMaxWidth()
                 .background(Color.Black)
                 .fillMaxHeight()
-                .fillMaxWidth(),
+                .zIndex(3f)
+                .align(Alignment.Start)
         )
         if (isSucess) {
             Text(
                 text = "Congratulation you found the movie",
                 textAlign = TextAlign.Center,
-                color = Color.Yellow,
-                modifier = Modifier.padding(8.dp)
+                color = Color.Red,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .fillMaxHeight()
+                    .zIndex(3f)
+                    .align(Alignment.Start)
             )
         }
         if (!isSucess) {
             Text(
                 text = "You failed ! ",
                 textAlign = TextAlign.Center,
-                color = Color.Yellow,
-                modifier = Modifier.padding(8.dp)
+                color = Color.Red,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black)
+                    .fillMaxHeight()
+                    .zIndex(3f)
+                    .align(Alignment.Start)
             )
         }
 
@@ -362,7 +369,7 @@ internal fun EndScreen(navigator: Navigator, isSucess: Boolean, films: List<Film
             fontWeight = FontWeight.Bold,
             fontSize = 40.sp,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(0.dp)
                 .offset(y = offsetY)
         )
         Button(onClick = {
@@ -381,8 +388,7 @@ internal fun EndScreen(navigator: Navigator, isSucess: Boolean, films: List<Film
 
 
     @Composable
-    fun guessPlanetScreen(navigator: Navigator, planets: List<Planet?>) {
-
+    fun guessPlanetScreen(navigator: Navigator) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

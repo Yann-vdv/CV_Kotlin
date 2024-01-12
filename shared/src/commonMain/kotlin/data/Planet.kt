@@ -10,10 +10,10 @@ data class Planet(
     val gravity: String,
     val name: String,
     val orbital_period: Int,
-    val population: Int,
+    val population: String,
     val residents: List<String>,
     val rotation_period: Int,
-    val surface_water: Int,
+    val surface_water: String,
     val terrain: String,
     val url: String
 )
