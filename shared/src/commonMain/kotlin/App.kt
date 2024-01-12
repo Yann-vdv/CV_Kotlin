@@ -49,145 +49,172 @@ import moe.tlaster.precompose.navigation.Navigator
 import moe.tlaster.precompose.navigation.path
 import moe.tlaster.precompose.navigation.rememberNavigator
 import network.FilmRepository
+import kotlin.random.Random
 
 private val repository = FilmRepository()
 
-@OptIn(ExperimentalResourceApi::class)
-@Composable
-fun App() {
-    val films = repository.filmsState.collectAsState()
-    PreComposeApp {
-        val navigator = rememberNavigator()
-        MaterialTheme {
-            NavHost(
-                navigator = navigator,
-                initialRoute = "/welcome"
-            ) {
-                scene(route = "/welcome") {
-                    WelcomeScreen(navigator);
-                }
-                scene(route = "/quizz") {
-                    if(films.value.isNotEmpty()) {
-                        guessMovieScreen(films.value)
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
+    fun App() {
+        val films = repository.filmsState.collectAsState()
+        PreComposeApp {
+            val navigator = rememberNavigator()
+            MaterialTheme {
+                NavHost(
+                    navigator = navigator,
+                    initialRoute = "/welcome"
+                ) {
+                    scene(route = "/welcome") {
+                        WelcomeScreen(navigator);
                     }
-                }
-                scene(route = "/score/{score}") { backStackEntry ->
-                    backStackEntry.path<String>("score")?.let { score ->
-                        ScoreScreen(navigator,score,films.value.size);
+                    scene(route = "/quizz") {
+                        if(films.value.isNotEmpty()) {
+                            guessMovieScreen(films.value)
+                        }
+                    }
+                    scene(route = "/score/{score}") { backStackEntry ->
+                        backStackEntry.path<String>("score")?.let { score ->
+                            ScoreScreen(navigator,score,films.value.size);
+                        }
                     }
                 }
             }
         }
     }
-}
 
-var searchResults by mutableStateOf<List<String>>(emptyList()) //liste de réponses fausses de l'utilisateur
-var searchText by mutableStateOf<String>("") //valeur entrée par l'utilisateur
-var hintBlocks by mutableStateOf<List<String>>(listOf("Indice 1","Indice 2","Indice 3","Indice 4","Indice 5", "Indice 6", "Indice 7", "Indice 8")) //bloc de texte pour les indices
+    var searchResults by mutableStateOf<List<String>>(emptyList()) //liste de réponses fausses de l'utilisateur
+    var searchText by mutableStateOf<String>("") //valeur entrée par l'utilisateur
+    var hintBlocks by mutableStateOf<List<String>>(emptyList()) //bloc de texte pour les indices
+    var currentRandomFilm: Film? = null
 
-@Composable
-fun guessMovieScreen(films: List<Film?>,) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color(0xFF000080))
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            TextField(
-                value = searchText,
-                onValueChange = {
-                    searchText = it
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .border(1.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(color = Color.White),
-                placeholder = { Text("Taper le nom du film") },
-                singleLine = true,
-                trailingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null
-                    )
-                },
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        search(searchText, films)
-                        searchText = ""
-                    }
-                )
-            )
-        }
 
-        hintBlocks.take(searchResults.size+3).forEach { hintBlock ->
-            Text(
-                text = hintBlock,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-                    .background(Color.Green)
-            )
-        }
+    @Composable
+    fun guessMovieScreen(films: List<Film?>,) {
+        val randomValues = Random.nextInt(0, 5)
 
-        if (searchResults.isNotEmpty()) {
-            Text(
-                text = "Réponses :",
-                textAlign = TextAlign.Center,
-                color = Color.White,
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-            )
-        }
+        randomMovie(films, randomValues)
 
-        LazyColumn(
+
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF000080))
+                .background(color = Color(0xFF000080))
         ) {
-            items(searchResults.reversed()) { result ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                TextField(
+                    value = searchText,
+                    onValueChange = {
+                        searchText = it
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                        .border(1.dp, color = Color.White, shape = RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = Color.White),
+                    placeholder = { Text("Taper le nom du film") },
+                    singleLine = true,
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null
+                        )
+                    },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            search(searchText)
+                            searchText = ""
+                        }
+                    )
+                )
+            }
+
+            hintBlocks.take(searchResults.size + 2).forEach { hintBlock ->
+                val limitedText = hintBlock.take(150)
                 Text(
-                    text = result,
+                    text = limitedText,
                     color = Color.White,
-                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    textDecoration = TextDecoration.LineThrough,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .background(Color.Green)
+                )
+            }
+
+            if (searchResults.isNotEmpty()) {
+                Text(
+                    text = "Réponses :",
+                    textAlign = TextAlign.Center,
+                    color = Color.White,
                     modifier = Modifier
                         .padding(8.dp)
                         .fillMaxWidth()
                 )
             }
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF000080))
+            ) {
+                items(searchResults.reversed()) { result ->
+                    Text(
+                        text = result,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        textDecoration = TextDecoration.LineThrough,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
         }
+    }
+
+var hintBlocksGenerated = false
+
+fun randomMovie(films: List<Film?>, randomValue: Int) {
+    if (!hintBlocksGenerated && films.isNotEmpty()) {
+        currentRandomFilm = films.random()
+
+        println("Film sélectionné : ${currentRandomFilm?.title ?: "Aucun film trouvé"}")
+//        println("Release Date: ${currentRandomFilm?.release_date}")
+//        println("Director: ${currentRandomFilm?.director}")
+//        println("Opening Crawl: ${currentRandomFilm?.opening_crawl}")
+
+        hintBlocks += "Release Date: ${currentRandomFilm?.release_date ?: "N/A"}"
+        hintBlocks += "Director: ${currentRandomFilm?.director ?: "N/A"}"
+        hintBlocks += "Edited: ${currentRandomFilm?.edited ?: "N/A"}"
+        hintBlocks += "producer: ${currentRandomFilm?.producer ?: "N/A"}"
+        hintBlocks += "Opening Crawl: ${currentRandomFilm?.opening_crawl ?: "N/A"}"
+
+        hintBlocksGenerated = true
     }
 }
 
+    fun search(searchText: String?) {
 
-fun search(searchText: String?, films: List<Film?>) {
-    val filmStarWars = "A New Hope"
-    if (!searchText.isNullOrBlank() && !searchText.equals(filmStarWars, ignoreCase = true)) {
-        println("Requête films : ")
-        films.forEach { film ->
-            println("${film?.title}")
+        if (currentRandomFilm != null && searchText.equals(currentRandomFilm?.title, ignoreCase = true)) {
+            println("Bravo! Vous avez trouvé le film.")
+        } else {
+            searchResults = (searchResults + searchText).distinct() as List<String>
+            println("Mauvaise réponse. Essayez encore.")
         }
 
-
-        if (hintBlocks.size < 5+3) { //A chaque fois que l'utilisateur rentre une mauvaise réponse alors
-            hintBlocks += "Nouvel indice pour \"$searchText\"" //on dévoile un indice (il faut faire la logique de récupération)
-        }
-        searchResults = (searchResults + searchText).distinct()
+            if (hintBlocks.size < 5) {
+                hintBlocks += "Nouvel indice pour \"$searchText\""
+            }
     }
-}
 
 
 @Composable
@@ -202,8 +229,7 @@ internal fun WelcomeScreen(navigator: Navigator) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
             ) {
-                Text(text = "Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Text(text = "A simple Quizz to test")
+                Text(text = "Star Wars Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 Button(onClick = {
                     navigator.navigate(route = "/quizz")
                 }) {
