@@ -104,7 +104,7 @@ internal fun WelcomeScreen(navigator: Navigator) {
                     scene(route = "/quizz") {
                         if(films.value.isNotEmpty()) {
                             randomMovie(films.value)
-                            guessMovieScreen(navigator, films.value)
+                            guessMovieScreen(navigator)
                         }
                     }
                     scene(route = "/planets") {
@@ -133,7 +133,7 @@ internal fun WelcomeScreen(navigator: Navigator) {
     var isSucess: Boolean = false;
 
     @Composable
-    fun guessMovieScreen(navigator: Navigator, films: List<Film?>) {
+    fun guessMovieScreen(navigator: Navigator) {
 
         Column(
             modifier = Modifier
