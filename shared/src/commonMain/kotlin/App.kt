@@ -204,6 +204,9 @@ fun randomMovie(films: List<Film?>) {
 }
 
 fun reset(navigator: Navigator, films: List<Film?>) {
+    hintBlocksGenerated = false;
+    hintBlocks = emptyList();
+    currentRandomFilm = null;
     randomMovie(films)
     navigator.navigate(route = "/welcome");
 }
