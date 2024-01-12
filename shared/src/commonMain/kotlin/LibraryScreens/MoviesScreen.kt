@@ -33,7 +33,7 @@ fun MoviesScreen(navigator: Navigator, films: List<Film?>) {
     ) {
         Spacer(modifier = Modifier.padding(bottom = 5.dp))
         if (films.size > 0) {
-            films.forEach { film: Film? ->
+            films.sortedBy { it?.episode_id }.forEach { film: Film? ->
                 if (film != null) {
                     Card() {
                         Column(
