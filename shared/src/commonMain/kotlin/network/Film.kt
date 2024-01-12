@@ -1,12 +1,11 @@
 package network
 
-import data.Film
-import data.FilmSearchRes
+import data.FilmReqRes
+import data.Planet
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -21,7 +20,7 @@ class FilmAPI {
                 })
         }
     }
-    suspend fun getAllFilms(): FilmSearchRes {
+    suspend fun getAllFilms(): FilmReqRes {
         try {
             return httpClient.get("https://swapi.dev/api/films").body()
         } catch (err:Exception) {
@@ -29,12 +28,20 @@ class FilmAPI {
         }
     }
 
-    suspend fun getFilm(name:String): FilmSearchRes {
+    suspend fun getFilm(name:String): FilmReqRes {
         try {
             return httpClient.get("https://swapi.dev/api/films/?search=$name").body()
         } catch (err:Exception) {
-            return FilmSearchRes(count = 0, results = listOf())
+            return FilmReqRes(count = 0, results = listOf())
             //throw err;
+        }
+    }
+
+    suspend fun getPlanet(id:Int): Planet {
+        try {
+            return httpClient.get("https://swapi.dev/api/planets/$id").body()
+        } catch (err:Exception) {
+            throw err;
         }
     }
 }

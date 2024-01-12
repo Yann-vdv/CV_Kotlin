@@ -1,7 +1,7 @@
 package data
 
 @kotlinx.serialization.Serializable
-data class FilmSearchRes(
+data class FilmReqRes(
     val count:Int,
     var results: List<Film?>
 )
