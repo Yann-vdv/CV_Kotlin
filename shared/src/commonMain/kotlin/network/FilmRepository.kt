@@ -84,9 +84,8 @@ class FilmRepository {
                 "https://swapi.dev/api/people/81/"
             ),
             planets = listOf(
-                "https://swapi.dev/api/planets/1/",
-                "https://swapi.dev/api/planets/2/",
-                "https://swapi.dev/api/planets/3/"
+                "Tatooine",
+                "Alderaan"
             ),
             starships = listOf(
                 "https://swapi.dev/api/starships/2/",
