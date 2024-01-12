@@ -1,3 +1,5 @@
+import LibraryScreens.MoviesScreen
+import LibraryScreens.PlanetsScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -61,23 +63,48 @@ internal fun WelcomeScreen(navigator: Navigator) {
     Column(
         modifier = Modifier.fillMaxHeight().fillMaxWidth().background(color = Color.DarkGray),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        Card() {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-            ) {
-                Text(text = "Star Wars Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                Button(onClick = {
-                    navigator.navigate(route = "/quizz")
-                }) {
-                    Text(text = "Guess the movie")
+        Text(text = "StarWars Guesser", fontWeight = FontWeight.Bold, fontSize = 30.sp, color = Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Card() {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "Star Wars Quizz", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Button(onClick = {
+                        navigator.navigate(route = "/quizz")
+                    }) {
+                        Text(text = "Guess the movie")
+                    }
+                    Button(onClick = {
+                        navigator.navigate(route = "/planets")
+                    }) {
+                        Text(text = "Guess the planet")
+                    }
                 }
-                Button(onClick = {
-                    navigator.navigate(route = "/planets")
-                }) {
-                    Text(text = "Guess the planet")
+            }
+            Card() {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(text = "Star Wars Library", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Button(onClick = {
+                        navigator.navigate(route = "/moviesRepo")
+                    }) {
+                        Text(text = "Consult movies")
+                    }
+                    Button(onClick = {
+                        navigator.navigate(route = "/planetsRepo")
+                    }) {
+                        Text(text = "Consult planets")
+                    }
                 }
             }
         }
@@ -120,6 +147,12 @@ internal fun WelcomeScreen(navigator: Navigator) {
                     scene(route = "/EndScreenPlanet/{isSucess}") {
                         it.path<Boolean>("isSucess")?.let {
                             EndScreenPlanet(navigator, it, planets.value ) }
+                    }
+                    scene(route = "/moviesRepo") {
+                        MoviesScreen(navigator,films.value);
+                    }
+                    scene(route = "/planetsRepo") {
+                        PlanetsScreen(navigator,planets.value);
                     }
                 }
             }
