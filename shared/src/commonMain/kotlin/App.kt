@@ -188,9 +188,11 @@ var hintBlocksGenerated = false
 
 fun randomMovie(films: List<Film?>) {
     if (!hintBlocksGenerated && films.isNotEmpty()) {
+        println("movies : ${films.size}")
+
         currentRandomFilm = films.random()
 
-        println("Selected movie : ${currentRandomFilm?.title ?: "None movie found"}")
+        println("Selected movie : ${currentRandomFilm?.title ?: "No movie found"}")
 
 
         hintBlocks += "Release Date: ${currentRandomFilm?.release_date ?: "N/A"}"
@@ -208,6 +210,9 @@ fun reset(navigator: Navigator, films: List<Film?>) {
     hintBlocks = emptyList();
     currentRandomFilm = null;
     randomMovie(films)
+    hintBlocksGenerated = false;
+    hintBlocks = emptyList();
+    searchResults = emptyList();
     navigator.navigate(route = "/welcome");
 }
 

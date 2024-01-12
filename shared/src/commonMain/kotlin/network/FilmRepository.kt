@@ -21,19 +21,19 @@ class FilmRepository {
 
     private suspend fun fetchFilms(): List<Film?> {
         var films = filmAPI.getAllFilms().results;
-        films.forEach { film: Film? ->
-            if (film != null) {
-                if (film.planets.size > 1) {
-                    film.planets = listOf<String>(
-                        getPlanetReq(film.planets[0]).name,
-                        getPlanetReq(film.planets[1]).name
-                    )
-                } else if (film.planets.size > 0) {
-                    getPlanetReq(film.planets[0]).name
-                }
-
-            };
-        }
+//        films.forEach { film: Film? ->
+//            if (film != null) {
+//                if (film.planets.size > 1) {
+//                    film.planets = listOf<String>(
+//                        getPlanetReq(film.planets[0]).name,
+//                        getPlanetReq(film.planets[1]).name
+//                    )
+//                } else if (film.planets.size > 0) {
+//                    getPlanetReq(film.planets[0]).name
+//                }
+//
+//            };
+//        }
         return films;
     };
 
@@ -49,7 +49,7 @@ class FilmRepository {
             try {
                 _filmsState.update { fetchFilms() }
             } catch (err:Exception) {
-//                println(err)
+                println(err)
                 _filmsState.update { cache }
             }
         }
