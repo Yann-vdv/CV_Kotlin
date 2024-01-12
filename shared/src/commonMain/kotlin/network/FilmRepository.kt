@@ -1,6 +1,7 @@
 package network
 
 import data.Film
+import data.Planet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,9 +19,29 @@ class FilmRepository {
         updateFilms()
     }
 
-    private suspend fun fetchFilms(): List<Film?> = filmAPI.getAllFilms().results
+    private suspend fun fetchFilms(): List<Film?> {
+        var films = filmAPI.getAllFilms().results;
+        films.forEach { film: Film? ->
+            if (film != null) {
+                if (film.planets.size > 1) {
+                    film.planets = listOf<String>(
+                        getPlanetReq(film.planets[0]).name,
+                        getPlanetReq(film.planets[1]).name
+                    )
+                } else if (film.planets.size > 0) {
+                    getPlanetReq(film.planets[0]).name
+                }
 
-    public suspend fun getFilmByName(name:String): Boolean = filmAPI.getFilm(name).count == 1;
+            };
+        }
+        return films;
+    };
+
+    suspend fun getFilmByName(name:String): Boolean = filmAPI.getFilm(name).count == 1;
+
+    suspend fun getPlanet(id:Int): Planet = filmAPI.getPlanet(id);
+
+    suspend fun getPlanetReq(req:String): Planet = filmAPI.getPlanetReq(req);
 
     private fun updateFilms(){
 

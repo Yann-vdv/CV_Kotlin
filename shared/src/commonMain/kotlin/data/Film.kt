@@ -8,7 +8,7 @@ data class Film(
     val edited:String,
     val episode_id:Int,
     val opening_crawl:String,
-    val planets:List<String>,
+    var planets:List<String>,
     val producer:String,
     val release_date:String,
     val species:List<String>,
